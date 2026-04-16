@@ -1,23 +1,34 @@
-import requests
+import asyncio
+import os
+from backboard import BackboardClient
 
 API_KEY = "espr_d50PVrO-aeKDSsReBXf5Au76XGu5sZFFrHEqbW8b5bs"
-URL = "https://api.backboard.io/v1/assistants"
 
-headers = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+async def main():
+    client = BackboardClient(api_key=API_KEY)
+    
+    try:
+        print("Creating Assistant...")
+        assistant = await client.create_assistant(
+            name="My First Assistant",
+            description="You are a helpful assistant that responds concisely."
+        )
+        print(f"✅ Created assistant: {assistant.assistant_id}")
 
-data = {
-    "name": "GHW Assistant",
-    "model": "gpt-4",
-    "system_prompt": "You are a helpful assistant for Global Hack Week."
-}
+        print("Creating Thread...")
+        thread = await client.create_thread(assistant.assistant_id)
+        print(f"✅ Created thread: {thread.thread_id}")
 
-response = requests.post(URL, headers=headers, json=data)
+        print("Sending message...")
+        response = await client.add_message(
+            thread_id=thread.thread_id,
+            content="say Hello World",
+            stream=False
+        )
+        print(f"🤖 Assistant: {response.content}")
 
-if response.status_code == 200 or response.status_code == 201:
-    print("Success")
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
